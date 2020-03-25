@@ -23,8 +23,6 @@ func main() {
 		Error(err, "could not parse parameters")
 	}
 
-	//fmt.Printf("params:%+v", params)
-
 	g := newGenerator(params)
 
 	resp := g.Generate(req)

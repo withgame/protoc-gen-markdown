@@ -65,14 +65,7 @@ func (t *twirp) P(args ...string) {
 
 func (t *twirp) scanAllMessages(req *plugin.CodeGeneratorRequest, resp *plugin.CodeGeneratorResponse) {
 	descriptors := protokit.ParseCodeGenRequest(req)
-	//fmt.Println("===")
-	//fmt.Printf("req.GetProtoFile():%d", len(req.GetProtoFile()))
-	//fmt.Printf("req.GetFileToGenerate():%d", len(req.GetFileToGenerate()))
-	//fmt.Println("===")
 	for _, d := range descriptors {
-		//fmt.Println("====")
-		//fmt.Printf("d.GetImports():%+v", d.GetImports())
-		//fmt.Println("====")
 		if len(d.GetImports()) > 0 {
 			for _, portD := range d.GetImports() {
 				t.scanMessages(portD.GetFile())
@@ -84,12 +77,7 @@ func (t *twirp) scanAllMessages(req *plugin.CodeGeneratorRequest, resp *plugin.C
 
 func (t *twirp) GenerateMarkdown(req *plugin.CodeGeneratorRequest, resp *plugin.CodeGeneratorResponse) {
 	descriptors := protokit.ParseCodeGenRequest(req)
-	//fmt.Println("----")
-	//fmt.Println("----")
 	for _, d := range descriptors {
-		//fmt.Println("----")
-		//fmt.Printf("len(d.GetImports)=%d", len(d.GetImports()))
-		//fmt.Println("----")
 		for _, sd := range d.GetServices() {
 			t.scanService(sd)
 			t.name = *sd.Name
@@ -223,9 +211,6 @@ func (t *twirp) scanMessage(md *protokit.Descriptor) {
 			Doc:    md.GetComments().GetTrailing(),
 			Fields: fields,
 		}
-		//fmt.Println("===")
-		//fmt.Printf("GetFullName:%s,name:%s,t.messages:=%+v", md.GetFullName(), md.GetName(), t.messages)
-		//fmt.Println("===")
 	}
 }
 

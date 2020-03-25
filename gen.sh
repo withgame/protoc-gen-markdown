@@ -12,7 +12,7 @@ go build -o protoc-gen-markdown ./
 
 # find ./ -name '*.proto' -exec \
 # protoc \
-# --plugin=protoc-gen-markdown=/Users/MS/Documents/goworkspace/src/protoc-gen-markdown/protoc-gen-markdown \
+# --plugin=protoc-gen-markdown=protoc-gen-markdown \
 # --markdown_out=path_prefix=/vocaldh,M$IMPORT_MAPPING:. {} \;
 
-protoc --plugin=protoc-gen-markdown=/Users/MS/Documents/goworkspace/src/protoc-gen-markdown/protoc-gen-markdown --markdown_out=path_prefix=/vocaldh,M$IMPORT_MAPPING:. hello.proto
+protoc --plugin=protoc-gen-markdown=protoc-gen-markdown --markdown_out=path_prefix=/vocaldh,M$IMPORT_MAPPING:. hello.proto
