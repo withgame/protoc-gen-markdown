@@ -14,10 +14,16 @@ POST
 
 ### Request
 ```javascript
-{}
+{
+    latitude: 0, // type:<int>
+    longitude: 0, // type:<int>
+}
 ```
 
 ### Reply
 ```javascript
-{}
+{
+    latitude: 0, // type:<int>
+    longitude: 0, // type:<int>
+}
 ```

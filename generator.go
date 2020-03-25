@@ -70,15 +70,14 @@ func (t *twirp) scanAllMessages(req *plugin.CodeGeneratorRequest, resp *plugin.C
 	//fmt.Printf("req.GetFileToGenerate():%d", len(req.GetFileToGenerate()))
 	//fmt.Println("===")
 	for _, d := range descriptors {
-		fmt.Printf("d.GetImports():%+v", d)
-		//if len(d.GetImports()) > 0 {
-		//	for _, portD := range d.GetImports() {
-		//		t.scanMessages(portD.GetFile())
-		//	}
-		//	fmt.Println("===")
-		//	fmt.Printf("t.messages:=%+v", t.messages)
-		//	fmt.Println("===")
-		//}
+		//fmt.Println("====")
+		//fmt.Printf("d.GetImports():%+v", d.GetImports())
+		//fmt.Println("====")
+		if len(d.GetImports()) > 0 {
+			for _, portD := range d.GetImports() {
+				t.scanMessages(portD.GetFile())
+			}
+		}
 		t.scanMessages(d)
 	}
 }
