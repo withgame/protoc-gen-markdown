@@ -9,7 +9,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
-	"github.com/pseudomuto/protokit"
+	"github.com/withgame/protokit"
 )
 
 type twirp struct {
@@ -65,15 +65,18 @@ func (t *twirp) P(args ...string) {
 
 func (t *twirp) scanAllMessages(req *plugin.CodeGeneratorRequest, resp *plugin.CodeGeneratorResponse) {
 	descriptors := protokit.ParseCodeGenRequest(req)
-
 	for _, d := range descriptors {
+		if len(d.GetImports()) > 0 {
+			for _, portD := range d.GetImports() {
+				t.scanMessages(portD.GetFile())
+			}
+		}
 		t.scanMessages(d)
 	}
 }
 
 func (t *twirp) GenerateMarkdown(req *plugin.CodeGeneratorRequest, resp *plugin.CodeGeneratorResponse) {
 	descriptors := protokit.ParseCodeGenRequest(req)
-
 	for _, d := range descriptors {
 		for _, sd := range d.GetServices() {
 			t.scanService(sd)
@@ -106,6 +109,37 @@ func (t *twirp) scanMessages(d *protokit.FileDescriptor) {
 
 func (t *twirp) scanEnum(md *protokit.EnumDescriptor) {
 	t.enums["."+md.GetFullName()] = md
+}
+
+type message struct {
+	Name   string
+	Fields []field
+	Label  descriptor.FieldDescriptorProto_Label
+	Doc    string
+}
+
+type field struct {
+	Name    string
+	Type    string
+	KeyType string
+	Note    string
+	Doc     string
+	Label   descriptor.FieldDescriptorProto_Label
+}
+
+func (f field) isRepeated() bool {
+	return f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED
+}
+
+type api struct {
+	FullName string
+	Method   string
+	Path     string
+	Doc      string
+	Request  *message
+	Reply    *message
+	Input    string
+	Output   string
 }
 
 func (t *twirp) scanMessage(md *protokit.Descriptor) {
@@ -172,7 +206,6 @@ func (t *twirp) scanMessage(md *protokit.Descriptor) {
 			}
 			fields[i] = f
 		}
-
 		t.messages[md.GetFullName()] = &message{
 			Name:   md.GetName(),
 			Doc:    md.GetComments().GetTrailing(),
@@ -181,53 +214,20 @@ func (t *twirp) scanMessage(md *protokit.Descriptor) {
 	}
 }
 
-type message struct {
-	Name   string
-	Fields []field
-	Label  descriptor.FieldDescriptorProto_Label
-	Doc    string
-}
-
-type field struct {
-	Name    string
-	Type    string
-	KeyType string
-	Note    string
-	Doc     string
-	Label   descriptor.FieldDescriptorProto_Label
-}
-
-func (f field) isRepeated() bool {
-	return f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED
-}
-
-type api struct {
-	Method  string
-	Path    string
-	Doc     string
-	Request *message
-	Reply   *message
-	Input   string
-	Output  string
-}
-
 func (t *twirp) scanService(d *protokit.ServiceDescriptor) {
 	t.comments = d.Comments
 	for _, md := range d.GetMethods() {
 		api := api{}
-
+		api.FullName = md.GetFullName()
 		api.Method = "POST"
 		api.Path = t.params.pathPrefix + "/" + d.GetFullName() + "/" + md.GetName()
 		doc := md.GetComments().GetLeading()
 		// 支持文档换行
 		api.Doc = strings.Replace(doc, "\n", "\n\n", -1)
-
-		inputType := md.GetInputType()[1:] // trim leading dot
-		api.Request = t.messages[inputType]
-
+		inputType := md.GetInputType()[1:]   // trim leading dot
+		api.Request = t.messages[inputType]  // @todo nil
 		outputType := md.GetOutputType()[1:] // trim leading dot
 		api.Reply = t.messages[outputType]
-
 		t.apis = append(t.apis, &api)
 	}
 }
@@ -369,11 +369,11 @@ func (t *twirp) generateJsDocForField(field field) string {
 func (t *twirp) generateJsDocForMessage(m *message) string {
 	var js string
 	js += "{\n"
-
-	for _, field := range m.Fields {
-		js += t.generateJsDocForField(field)
+	if m != nil {
+		for _, field := range m.Fields {
+			js += t.generateJsDocForField(field)
+		}
 	}
-
 	js += "}"
 
 	return js
